@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import { observer } from 'mobx-react';
 import * as d3 from 'd3';
-import { Data } from './ObservableStore';
-import './App.css';
+import { Data } from './Store';
+import './css/Heatmap.css';
 
+/** Define props for <Chart> */
 interface Chart {
   data: Data[],
 }
 
-const Heatmap =  observer( class Heatmap extends Component<Chart> {
+/** Class for rendering heatmap */
+class Heatmap extends Component<Chart> {
   state = {
     data: this.props.data,
     cellSize: 17,
@@ -113,9 +114,7 @@ const Heatmap =  observer( class Heatmap extends Component<Chart> {
     month.append('text')
         .attr('x', (d: Data) => d3.utcMonday.count(d3.utcYear(d), d3.utcMonday.ceil(d)) * cellSize + 2)
         .attr('y', -5)
-        .text(d3.utcFormat('%b'));
-/* 
-    return svg.node(); */
+        .text(d3.utcFormat('%b'));    
   }
 
   render() {
@@ -131,6 +130,6 @@ const Heatmap =  observer( class Heatmap extends Component<Chart> {
       </div>
     )
   }
-})
+}
 
 export default Heatmap;

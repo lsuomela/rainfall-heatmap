@@ -1,48 +1,60 @@
 import React, { Component } from 'react';
-import { observer } from 'mobx-react';
-import './App.css';
+import './css/App.css';
 import Heatmap from './Heatmap';
-import store, { Data } from './ObservableStore';
-import { toJS } from 'mobx';
+import store from './Store';
 
-const App = observer( class App extends Component {
+/** Class for choosing which years data to render */
+class App extends Component {
   state = {
     year: 2018,
+    loaded: false,
   }
 
+  /** On mount, load data into store */
   componentDidMount() {
     store.loadData();
-    store.setDataToRender(this.state.year);
+    this.setState({ loaded: true });
   }
   
-  /**
-   * Sets the year for which to render data
+  /** Sets the year for which to render data
+   * @param y Year from which to get data
    */
   setYear = (y: number) => {
-    this.setState({
-      year: y,
-    });
-    store.setDataToRender(this.state.year);
+    if (y != this.state.year) {
+      this.setState({ year: y });
+    }
   }
 
-  render() {
-    const { year } = this.state;    
+  render() {    
+    const { year } = this.state;
+
     return (
       <div className="App">
         <header className="App-header">
           {`Rainfall in Tampere in ${year}`}
         </header>
-        <div className='yearSelection'>
-          {Array.from( store.values.keys() ).map((key: number) =>
-            <div key={key} onClick={ e => this.setYear(key)} className={year==key?'selectedYear':null}>
-              {key}
-            </div>
-          )}
+        {/* Render after component data has been loaded */}
+        {this.state.loaded &&
+        <div>
+          <div className='yearSelection'>
+            {/* Map years from which data is available to buttons */}
+            {Array.from(store.values.keys()).map((key: number) =>
+              <div
+                key={key}
+                onClick={e => this.setYear(key)}
+                className={year==key?'selectedYear':null}
+                >
+                {key}
+              </div>
+            )}
+          </div>
+          <Heatmap data={store.getData(year)} />
         </div>
-        <Heatmap data={toJS(store.dataToRender)} />
+        }
+
       </div>
     );
   }
-})
+}
 
 export default App;
