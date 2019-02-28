@@ -1,17 +1,38 @@
 .App {
   text-align: center;
+  width: 100%;
 }
 
-.react-calendar-heatmap .color-scale-1 { fill: #80bbff; }
-.react-calendar-heatmap .color-scale-2 { fill: #6ec5ff; }
-.react-calendar-heatmap .color-scale-3 { fill: #5bcbff; }
-.react-calendar-heatmap .color-scale-4 { fill: #2eb2ff; }
-.react-calendar-heatmap .color-scale-5 { fill: #00a2ff; }
+.yearSelection {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  margin: auto;
+}
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
+.yearSelection div {
+  padding: 5px 10px;
+  margin: 0 5px;
+  border-radius: 3px;
+  border: 3px, solid, gray;
+  color: gray;
+  background-color: whitesmoke;
+  font-weight: bold;
+}
+
+.yearSelection div.selectedYear {
+  color: whitesmoke;
+  background-color: gray;
+}
+
+.chosen {
+  color: whitesmoke;
+  background-color: gray;
+}
+
+.year {
+  color: gray;
+  background-color: whitesmoke;
 }
 
 .App-header {
@@ -25,15 +46,19 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.svg-container {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+  vertical-align: top;
+  overflow: hidden;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.svg-content {
+  margin: auto;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }

@@ -1,9 +1,10 @@
 import { observable, action, toJS, decorate } from 'mobx';
 import data from './data/tampere';
 
+/** Interface for units of data */
 export interface Data {
   date: Date,
-  rainfall: number,
+  value: number,
 }
 
 /**
@@ -11,7 +12,7 @@ export interface Data {
  */
 class ObservableStore {
   /** Data */
-  values: Data[] = [];
+  values: Map<number, Object[]> = new Map<number, Object[]>();
 
   /** Data to be rendered */
   dataToRender: Data[] = [];
@@ -19,12 +20,19 @@ class ObservableStore {
   /** Set data from defined data source */
   loadData = () => {
     for (let day of data) {
-      console.log(day);
-      
-      this.values.push({
+      /* Create arrays to hold each years data */
+      if (!this.values.has(day.y)) {
+        this.values.set(day.y, []);
+      }
+      /* Remove negative values from rainfall */
+      if (day.rainfall < 0) {
+        day.rainfall = 0;
+      }
+      const entry = {
         date: new Date(Date.UTC(day.y, day.m, day.d)), // convert date strings to Date objects
-        rainfall: day.rainfall,
-      });
+        value: day.rainfall,
+      }
+      this.values.get(day.y).push(entry);
     }
   }
 
@@ -39,12 +47,9 @@ class ObservableStore {
   /**
    * Sets the data to be rendered according to the selected dates
    */
-  @action
-  setDataToRender = (start: Date, end: Date) => {
-    for (let x of this.values) {
-      if (start <= x.date && x.date <= end) {        
-        this.dataToRender.push(x);
-      }
+  setDataToRender = (year: number) => {
+    for (let x of this.values.get(year)) {
+      this.dataToRender.push(x as Data);
     }
   }
 }
