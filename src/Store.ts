@@ -7,29 +7,29 @@ export interface Data {
 }
 
 /**
- * Mobx store for holding and manipulating data
+ * Store for holding and manipulating data
  */
 class Store {
-  /** Map for data */
-  values: Map<number, Data[]> = new Map<number, Data[]>();
+  /** @private Map for data */
+  values_: Map<number, Data[]> = new Map<number, Data[]>();
 
   /** Load data from imported data source */
   loadData = () => {
     for (let day of data) {
       /* Create arrays to hold each years data */
-      if (!this.values.has(day.y)) {
-        this.values.set(day.y, []);
+      if (!this.values_.has(day.y)) {
+        this.values_.set(day.y, []);
       }
       /* Remove negative values from rainfall */
       if (day.rainfall < 0) {
         day.rainfall = 0;
       }
-      /* Format data => Object<Data> */
+      /* Format data into Object<Data> */
       const entry = {
         date: new Date(Date.UTC(day.y, day.m, day.d)),
         value: day.rainfall,
       }      
-      this.values.get(day.y).push(entry);
+      this.values_.get(day.y).push(entry);
     }
   }
 
@@ -39,8 +39,17 @@ class Store {
    * @returns Data from year
    */
   getData = (year: number): Data[] => {
-    return this.values.get(year);
+    return this.values_.get(year);
   }
+
+  /** 
+   * Gets the year range from which data is available
+   * @returns Keys from values_
+   */
+  getRange = (): number[] => {
+    return Array.from(this.values_.keys());
+  }
+
 }
 
 export default new Store();

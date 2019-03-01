@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, createRef } from 'react';
 import * as d3 from 'd3';
 import { Data } from './Store';
 import './css/Heatmap.css';
@@ -10,8 +10,8 @@ interface Chart {
 
 /** Class for rendering heatmap */
 class Heatmap extends Component<Chart> {
+  private myRef = createRef<SVGSVGElement>();
   state = {
-    data: this.props.data,
     cellSize: 17,
     /* Set color and interpolation range */
     color: d3.scaleSequential(d3.interpolateBlues).domain([0, 25]),
@@ -19,26 +19,26 @@ class Heatmap extends Component<Chart> {
     dateFormat: d3.utcFormat('%-d.%-m.%Y'), // for onHover legend
   }
 
+  /** Draw the chart when component mounts */
   componentDidMount() {
     this.draw();
   }
 
-  componentDidUpdate() {
-    if (this.props.data != this.state.data) {
-      this.setState({
-        data: this.props.data
-      });
+  /** Draw new chart when component updates with new props */
+  componentDidUpdate(prevProps: any) {
+    if (this.props.data != prevProps.data) {
+      d3.select(this.myRef.current).selectAll("*").remove();
+      this.draw();
     }
-    this.draw();
   }
 
-  /**
-   * Function for drawing the heatmap with data from store
-   */
+  /** Function for drawing the heatmap with data from props */
   draw = () => {
     const data = this.props.data;
     const { cellSize, dateFormat, valueFormat, color } = this.state;
-
+    const y = data[0].date.getUTCFullYear();
+    
+    /* Util functions for D3 */
     const countDay = (d: any) => (d.getUTCDay() + 6) % 7;
     const formatDay = (d: any) => 'SMTWTFS'[d.getUTCDay()];
 
@@ -53,20 +53,21 @@ class Heatmap extends Component<Chart> {
             H${w * cellSize}`}V${n * cellSize}`;
     }
 
+    /* Links data to a year */
     const years = d3.nest()
-      .key((d: Data) => d.date.getUTCFullYear())
+      .key((d: any) => d.date.getUTCFullYear())
       .entries(data)
       .reverse();
 
     /* Select the element to which the chart will render */
-    const svg = d3.select(this.refs.chart)
+    const svg = d3.select(this.myRef.current)
         .style('font', '10px sans-serif')
 
     const year = svg.selectAll('g')
       .data(years)
       .join('g')
         .attr('transform', (d: any, i: number) => 
-          `translate(40,${(cellSize*9*i) + (cellSize*1.5)})`);
+            `translate(40,${(cellSize*9*i) + (cellSize*1.5)})`);
 
     /* Show year in top left corner */
     year.append('text')
@@ -76,53 +77,57 @@ class Heatmap extends Component<Chart> {
         .attr('text-anchor', 'end')
         .text((d: any) => d.key);
 
-    /* Render a square for each date */
+    /* Render labels for days */
     year.append('g')
         .attr('text-anchor', 'end')
       .selectAll('text')
-      .data((d3.range(7)).map((i: number) => new Date(2015, 0, i)))
+      .data((d3.range(7)).map((i: number) => new Date(y, 0, i)))
       .join('text')
         .attr('x', -5)
         .attr('y', (d: any) => (countDay(d) + 0.5) * cellSize)
         .attr('dy', '0.31em')
         .text(formatDay);
 
-    /* Render rectangle and on hover legend */
+    /* Render squares and on hover legend */
     year.append('g')
       .selectAll('rect')
       .data((d: any) => d.values)
       .join('rect')
         .attr('width', cellSize - 1)
         .attr('height', cellSize - 1)
-        .attr('x', (d: Data) => d3.utcMonday.count(d3.utcYear(d.date), d.date) * cellSize + 0.5)
-        .attr('y', (d: Data) => countDay(d.date) * cellSize + 0.5)
-        .attr('fill', (d: Data) => color(d.value))
+        .attr('x', (d: any) =>
+            d3.utcMonday.count(d3.utcYear(d.date), d.date) * cellSize + 0.5)
+        .attr('y', (d: any) => countDay(d.date) * cellSize + 0.5)
+        .attr('fill', (d: any) => color(d.value))
       .append('title')
-        .text((d: Data) => `${dateFormat(d.date)}\n${valueFormat(d.value)}mm`);
+        .text((d: any) =>
+            `${dateFormat(d.date)}\n${valueFormat(d.value)}mm`);
 
+    /* Add labels for months */
     const month = year.append('g')
       .selectAll('g')
-      .data((d: any) => d3.utcMonths(d3.utcMonth(d.values[0].date), d.values[d.values.length - 1].date))
+      .data((d: any) => d3.utcMonths(
+          d3.utcMonth(d.values[0].date), d.values[d.values.length - 1].date))
       .join('g');
 
-    month.filter((d: any, i: number) => i).append('path')
+    month.filter((d: any, i: any) => i).append('path')
         .attr('fill', 'none')
         .attr('stroke', '#fff')
         .attr('stroke-width', 3)
         .attr('d', pathMonth);
 
     month.append('text')
-        .attr('x', (d: Data) => d3.utcMonday.count(d3.utcYear(d), d3.utcMonday.ceil(d)) * cellSize + 2)
+        .attr('x', (d: any) => d3.utcMonday.count(
+            d3.utcYear(d), d3.utcMonday.ceil(d)) * cellSize + 2)
         .attr('y', -5)
         .text(d3.utcFormat('%b'));    
   }
 
   render() {
-    d3.select(this.refs.chart).selectAll("*").remove();
     return (
       <div ref='container' className='svg-container' >
         <svg
-          ref='chart'
+          ref={this.myRef}
           className='svg-content'
           viewBox='-70 0 1100 400'
           preserveAspectRatio='xMidYMid meet'

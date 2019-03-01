@@ -22,19 +22,19 @@
 }
 
 .yearSelection div {
-  padding: 5px 10px;
-  margin: 0 5px;
-  border-radius: 3px;
+  padding: 6px 15px;
+  margin: 0 8px;
+  border-radius: 4px;
   border: 3px, solid, gray;
-  color: gray;
-  background-color: whitesmoke;
+  color: rgb(99, 99, 99);
+  background-color: rgb(231, 231, 231);
   font-weight: bold;
   cursor: pointer;
 }
 
 .yearSelection div.selectedYear {
-  color: whitesmoke;
-  background-color: gray;
+  color: rgb(252, 252, 252);
+  background-color: rgb(151, 150, 150);
   cursor: default;
 }
 

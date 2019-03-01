@@ -38,12 +38,12 @@ class App extends Component {
         <div>
           <div className='yearSelection'>
             {/* Map years from which data is available to buttons */}
-            {Array.from(store.values.keys()).map((key: number) =>
+            {store.getRange().map((key: number) =>
               <div
                 key={key}
                 onClick={e => this.setYear(key)}
-                className={year==key?'selectedYear':null}
-                >
+                className={year == key ? 'selectedYear' : null}
+              >
                 {key}
               </div>
             )}
