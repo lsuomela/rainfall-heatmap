@@ -10,26 +10,23 @@ export interface Data {
  * Store for holding and manipulating data
  */
 class Store {
-  /** @private Map for data */
-  values_: Map<number, Data[]> = new Map<number, Data[]>();
+  /** Map for data */
+  private values: Map<number, Data[]> = new Map<number, Data[]>();
 
   /** Load data from imported data source */
   loadData = () => {
-    for (let day of data) {
+    for (const day of data) {
       /* Create arrays to hold each years data */
-      if (!this.values_.has(day.y)) {
-        this.values_.set(day.y, []);
-      }
-      /* Remove negative values from rainfall */
-      if (day.rainfall < 0) {
-        day.rainfall = 0;
+      if (!this.values.has(day.y)) {
+        this.values.set(day.y, []);
       }
       /* Format data into Object<Data> */
       const entry = {
         date: new Date(Date.UTC(day.y, day.m, day.d)),
-        value: day.rainfall,
-      }      
-      this.values_.get(day.y).push(entry);
+        value: Math.max(0, day.rainfall), // remove negative values
+      }
+      /* Add the entry to the array for the corresponding year */
+      this.values.get(day.y).push(entry);
     }
   }
 
@@ -39,17 +36,16 @@ class Store {
    * @returns Data from year
    */
   getData = (year: number): Data[] => {
-    return this.values_.get(year);
+    return this.values.get(year);
   }
 
   /** 
    * Gets the year range from which data is available
-   * @returns Keys from values_
+   * @returns Keys from values
    */
   getRange = (): number[] => {
-    return Array.from(this.values_.keys());
+    return Array.from(this.values.keys());
   }
-
 }
 
 export default new Store();
