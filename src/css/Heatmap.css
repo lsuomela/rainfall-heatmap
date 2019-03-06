@@ -8,8 +8,8 @@
 }
 
 .svg-content {
-  font-family: sans-serif;
-  font-size: 0.7em;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.45em;
   margin: auto;
   display: inline-block;
   position: absolute;
@@ -19,5 +19,5 @@
 /* Gap between months */
 path {
   fill: none;
-  stroke: rgb(255, 235, 235);
+  stroke: rgb(215, 215, 215);
 }

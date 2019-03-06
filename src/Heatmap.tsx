@@ -8,17 +8,17 @@ interface Chart {
   data: Data[],
 }
 
+/* Formatting for chart */
+const color = d3.scaleSequential(d3.interpolateBlues).domain([0, 22]);
+const cellSize = 17;
+const dayGap = 1.5; // width of gap between days
+
+/* For squares' on hover -legend */
+const valueFormat = d3.format('.3'); // 3 digits
+const dateFormat = d3.utcFormat('%-d.%-m.%Y'); // dd.mm.yyyy
+
 /** Class for rendering heatmap */
 class Heatmap extends PureComponent<Chart> {
-  state = {
-    cellSize: 17,
-    /* Set color and interpolation range */
-    color: d3.scaleSequential(d3.interpolateBlues).domain([0, 22]),
-    /* For squares' on hover -legend */
-    valueFormat: d3.format('.3'), // 3 digits
-    dateFormat: d3.utcFormat('%-d.%-m.%Y'), // dd.mm.yyyy
-    dayGap: 1.2, // width of gap between days
-  }
 
   /** Ref to element where chart will render */
   private svgRef = createRef<SVGSVGElement>();
@@ -40,7 +40,6 @@ class Heatmap extends PureComponent<Chart> {
   /** Function for drawing the heatmap with data from props */
   draw = () => {
     const { data } = this.props;
-    const { dayGap, cellSize, dateFormat, valueFormat, color } = this.state;
     const year = data[0].date.getUTCFullYear();
     
     /* Get day of the week of d */
@@ -78,8 +77,8 @@ class Heatmap extends PureComponent<Chart> {
         .attr('width', cellSize - dayGap)
         .attr('height', cellSize - dayGap)
         .attr('x', (d: Data) =>
-            d3.utcMonday.count(d3.utcYear(d.date), d.date) * cellSize + dayGap/2)
-        .attr('y', (d: Data) => countDay(d.date) * cellSize + dayGap/2)
+            d3.utcMonday.count(d3.utcYear(d.date), d.date)*cellSize + dayGap/2)
+        .attr('y', (d: Data) => countDay(d.date)*cellSize + dayGap/2)
         .attr('fill', (d: Data) => color(d.value))
       .append('title')
         .text((d: Data) =>
@@ -108,13 +107,13 @@ class Heatmap extends PureComponent<Chart> {
 
     /* Gap between months */
     month.filter((d: any, i: any) => i).append('path')
-        .attr('stroke-width', dayGap*2) // width
+        .attr('stroke-width', dayGap) // width
         .attr('d', monthGapPath);
 
     /* Labels to months */
     month.append('text')
         .attr('x', (d: Date) => d3.utcMonday.count(
-            d3.utcYear(d), d3.utcMonday.ceil(d)) * cellSize + 2)
+            d3.utcYear(d), d3.utcMonday.ceil(d))*cellSize + 1.4*cellSize)
         .attr('y', -5)
         .text(d3.utcFormat('%b')); // 3 char month names
   }
