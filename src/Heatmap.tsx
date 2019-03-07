@@ -8,10 +8,16 @@ interface Chart {
   data: Data[],
 }
 
+/* Formatting for legend */
+const legendColor = d3.scaleSequential(d3.interpolateBlues).domain([0, 7]);
+
 /* Formatting for chart */
-const color = d3.scaleSequential(d3.interpolateBlues).domain([0, 22]);
+const color = d3.scaleSequential(d3.interpolateBlues).domain([0, 21]);
 const cellSize = 17;
 const dayGap = 1.5; // width of gap between days
+
+/* Get day of the week of d */
+const countDay = (d: Date): number => (d.getUTCDay() + 6) % 7;
 
 /* For squares' on hover -legend */
 const valueFormat = d3.format('.3'); // 3 digits
@@ -20,35 +26,77 @@ const dateFormat = d3.utcFormat('%-d.%-m.%Y'); // dd.mm.yyyy
 /** Class for rendering heatmap */
 class Heatmap extends PureComponent<Chart> {
 
-  /** Ref to element where chart will render */
-  private svgRef = createRef<SVGSVGElement>();
+  /** Element where chart will render */
+  private chartRef = createRef<SVGSVGElement>();
 
-  /** Draw the chart when component mounts */
-  componentDidMount() { this.draw(); }
+  /** Element where legend will render */
+  private legendRef = createRef<SVGSVGElement>();
+
+  /** Draw the chart and legend when component mounts */
+  componentDidMount() {
+    this.drawStatic();
+    this.draw();
+  }
   
   /** Draw new chart when component updates with new props */
   componentDidUpdate() {
-    d3.select(this.svgRef.current).selectAll("*").remove(); // clear old chart
+    d3.select(this.chartRef.current).selectAll('*').remove();
     this.draw();
   }
 
-  /** Clear chart on unmount */
+  /** Clear on unmount */
   componentWillUnmount() {
-    d3.select(this.svgRef.current).selectAll("*").remove();
+    d3.select(this.chartRef.current).selectAll('*').remove();
+    d3.select(this.legendRef.current).selectAll('*').remove();
+  }
+
+  /** Draws legend */
+  drawStatic = () => {
+    const legend = d3.select(this.legendRef.current).append('g');
+    const width = 6;
+
+    /* Draw rectangles */
+    legend.selectAll('rect')
+      .data((): number[] => d3.range(8))
+      .join('rect')
+        .attr('width', cellSize/4)
+        .attr('height', cellSize/4)
+        .attr('x', (d: number): number => d * width)
+        .attr('fill', (d: number): string => legendColor(d));
+
+    /* Unit below values */
+    legend.append('text')
+        .attr('class', 'legend')
+        .attr('id', 'unit')
+        .attr('x', 23.2)
+        .attr('y', 13)
+        .attr('text-anchor', 'middle')
+        .text('(mm)');
+
+    /* Add values as text */
+    legend.append('g')
+        .attr('text-anchor', 'start')
+      .selectAll('text')
+      .data((): number[] => d3.range(8))
+      .join('text')
+        .attr('class', 'legend')
+        .attr('x', (d: number): number => 0.3 + d * width)
+        .attr('y', 7.8)
+        .text((d: number): string => {
+          return (
+            d < 4 ? `\xa0${d*3}` :
+              d === 7 ? `${d*3}+` : `${d*3}`
+          );
+        });
   }
 
   /** Function for drawing the heatmap with data from props */
   draw = () => {
     const { data } = this.props;
     const year = data[0].date.getUTCFullYear();
-    
-    /* Get day of the week of d */
-    const countDay = (d: Date): number => (d.getUTCDay() + 6) % 7;
 
     /* Select the element to which the chart will render and link the data */
-    const chart = d3.select(this.svgRef.current).selectAll('g')
-      .data([{key: year, values: data}])
-      .join('g');
+    const chart = d3.select(this.chartRef.current).append('g');
     
     /* Year in top left corner */
     chart.append('text')
@@ -62,12 +110,12 @@ class Heatmap extends PureComponent<Chart> {
     chart.append('g')
         .attr('text-anchor', 'end')
       .selectAll('text')
-      .data((d3.range(7)).map((i: number) => new Date(year, 0, i)))
+      .data((d3.range(7)).map((i: number): Date => new Date(2000, 0, i)))
       .join('text')
         .attr('x', -5)
-        .attr('y', (d: Date) => (countDay(d) + 0.5) * cellSize)
+        .attr('y', (d: Date): number => (countDay(d) + 0.5) * cellSize)
         .attr('dy', '0.31em')
-        .text((d: Date) => 'SMTWTFS'[d.getUTCDay()]);
+        .text((d: Date): string => 'SMTWTFS'[d.getUTCDay()]);
 
     /* Squares and on hover legend */
     chart.append('g')
@@ -76,16 +124,16 @@ class Heatmap extends PureComponent<Chart> {
       .join('rect')
         .attr('width', cellSize - dayGap)
         .attr('height', cellSize - dayGap)
-        .attr('x', (d: Data) =>
+        .attr('x', (d: Data): number =>
             d3.utcMonday.count(d3.utcYear(d.date), d.date)*cellSize + dayGap/2)
-        .attr('y', (d: Data) => countDay(d.date)*cellSize + dayGap/2)
-        .attr('fill', (d: Data) => color(d.value))
+        .attr('y', (d: Data): number => countDay(d.date)*cellSize + dayGap/2)
+        .attr('fill', (d: Data): string => color(d.value))
       .append('title')
-        .text((d: Data) =>
+        .text((d: Data): string =>
             `${dateFormat(d.date)}\n${valueFormat(d.value)}mm`);
     
     /* Path for the gaps between months */
-    const monthGapPath = (d: Date) => {
+    const monthGapPath = (d: Date): string => {
       const day = countDay(d);
       /* Count weeks from the beginning of the year to d */
       const w = d3.utcMonday.count(d3.utcYear(d), d);
@@ -110,9 +158,9 @@ class Heatmap extends PureComponent<Chart> {
         .attr('stroke-width', dayGap) // width
         .attr('d', monthGapPath);
 
-    /* Labels to months */
+    /* Labels for months */
     month.append('text')
-        .attr('x', (d: Date) => d3.utcMonday.count(
+        .attr('x', (d: Date): number => d3.utcMonday.count(
             d3.utcYear(d), d3.utcMonday.ceil(d))*cellSize + 1.4*cellSize)
         .attr('y', -5)
         .text(d3.utcFormat('%b')); // 3 char month names
@@ -120,14 +168,24 @@ class Heatmap extends PureComponent<Chart> {
 
   render() {
     return (
-      <div ref='container' className='svg-container' >
-        <svg
-          ref={this.svgRef}
-          className='svg-content'
-          /* Origin for render and x y ratio */
-          viewBox={`-60 -20 1000 400`}
-          preserveAspectRatio='xMidYMid meet'
-        />
+      <div>
+        <div className='svgContainer' >
+          <svg
+            ref={this.chartRef}
+            className='svgContent'
+            /* Origin for render and x y ratio */
+            viewBox={`-56 -20 1000 300`}
+            preserveAspectRatio='xMidYMid meet'
+          />
+        </div>
+        <div className='svgContainer'>
+          <svg
+            ref={this.legendRef}
+            className='svgContent'
+            viewBox={`-361 -10 500 25`}
+            preserveAspectRatio='xMidYMid meet'
+          />
+        </div>
       </div>
     )
   }

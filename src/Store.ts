@@ -20,7 +20,7 @@ class Store {
       if (!this.values.has(day.y)) {
         this.values.set(day.y, []);
       }
-      /* Format data into Object<Data> */
+      /* Format data into object<Data> */
       const entry = {
         date: new Date(Date.UTC(day.y, day.m, day.d)),
         value: Math.max(0, day.rainfall), // remove negative values
