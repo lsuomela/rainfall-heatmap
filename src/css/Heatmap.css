@@ -23,10 +23,12 @@ text {
 .legend {
   font-size: 0.2em;
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  text-anchor: start;
 }
 
 #unit {
   font-style: italic;
+  text-anchor: middle;
 }
 
 /* Gap between months */
