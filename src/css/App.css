@@ -4,14 +4,14 @@
 }
 
 .App-header {
-  background-color: rgb(42, 64, 109);
+  background-color: rgb(40, 60, 115);
   min-height: 18vh;
   display: flex;
   padding-bottom: 5px;
   align-items: center;
   justify-content: center;
   font-size: 2.2em;
-  color: rgb(255, 255, 252);
+  color: rgb(255, 255, 255);
 }
 
 .yearSelection {
@@ -20,20 +20,33 @@
   justify-content: center;
 }
 
-.yearSelection div {
+button {
+  border: none;
   font-size: 1em;
   font-weight: bold;
-  padding: 0.4em 1.1em;
-  margin: 0 0.7em;
-  border-radius: 5px;
-  border: 3px, solid, gray;
-  color: rgb(75, 75, 75);
-  background-color: rgb(210, 210, 215);
+  padding: 0.40em 1.2em;
+  padding-top: 0.553em;
+  margin: 0 0.78em;
+  border-radius: 8px;
+  background-color: rgb(225, 230, 235);
   cursor: pointer;
 }
+button:focus {
+  outline: 0;
+}
 
-.yearSelection div.selectedYear {
-  color: rgb(252, 252, 252);
-  background-color: rgb(137, 137, 140);
+button:not(.selectedYear):hover,
+button:not(.selectedYear):focus {
+  background-color: rgb(220, 225, 230);
+  box-shadow: 1px 1px 1px rgb(90, 95, 100);
+}
+button:not(.selectedYear):active {
+  background-color: rgb(217, 222, 227);
+  box-shadow: 2px 2px 2px rgb(90, 95, 100);
+}
+
+button.selectedYear {
+  color: rgb(255, 255, 255);
+  background-color: rgb(95, 120, 150);
   cursor: default;
 }

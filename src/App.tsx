@@ -47,13 +47,13 @@ class App extends Component {
           <div className='yearSelection'>
             {/* Map years from which data is available to buttons */}
             {store.getRange().map((key: number) =>
-              <div
+              <button
                 key={key}
                 onClick={e => this.setYear(key)}
                 className={ year===key ? 'selectedYear' : null }
               >
                 {key}
-              </div>
+              </button>
             )}
           </div>
           <Heatmap data={store.getData(year)} />
