@@ -8,21 +8,13 @@ interface Chart {
   data: Data[],
 }
 
-/* Square formatting */
-const cellSize = 17;
-const color = d3.scaleSequential(d3.interpolateBlues).domain([0, 21]);
-const legendColor = d3.scaleSequential(d3.interpolateBlues).domain([0, 7]);
-
-/* Get index of the day of the week of d */
-const countDay = (d: Date): number => (d.getUTCDay() + 6) % 7;
-
-/** Class for rendering heatmap */
+/** Renders a heatmap as an SVG-chart */
 class Heatmap extends PureComponent<Chart> {
-
-  /** Element where chart will render */
+  /** Attribute for cell size */
+  private cellSize = 17;
+  /** Reference to the element where chart will render */
   private chartRef = createRef<SVGSVGElement>();
-
-  /** Element where legend will render */
+  /** Reference to the element where legend will render */
   private legendRef = createRef<SVGSVGElement>();
 
   /** Draw the chart and static elements when component mounts */
@@ -42,34 +34,42 @@ class Heatmap extends PureComponent<Chart> {
     d3.selectAll('svg').selectAll('*').remove();
   }
 
+  /** Returns the day of the week of a date
+    * @param d - Input date
+    * @returns The zero-based index of `d` in an ISO 8601 -week
+    */
+  countDay = (d: Date): number => (d.getUTCDay() + 6) % 7;
+
   /** Draws static elements */
   drawStatic = () => {
+    const rectColour = d3.scaleSequential(d3.interpolateBlues).domain([0, 7]);
 
-    /* Labels for days of the week */
+    // labels for days of the week
     d3.select(this.chartRef.current).append('g')
         .attr('text-anchor', 'end')
       .selectAll('text')
       .data((d3.range(7)).map((i: number): Date => new Date(2000, 0, i)))
       .join('text')
         .attr('x', -5)
-        .attr('y', (d: Date): number => (countDay(d) + 0.5) * cellSize)
+        .attr('y',
+            (d: Date): number => (this.countDay(d) + 0.5) * this.cellSize)
         .attr('dy', '0.31em')
         .text((d: Date): string => 'SMTWTFS'[d.getUTCDay()]);
 
-    /* Legend */
+    // legend
     const legend = d3.select(this.legendRef.current).append('g');
     const width = 6;
 
-    /* Draw squares */
+    // draw squares
     legend.selectAll('rect')
       .data((): number[] => d3.range(8))
       .join('rect')
-        .attr('width', cellSize/4)
-        .attr('height', cellSize/4)
+        .attr('width', this.cellSize/4)
+        .attr('height', this.cellSize/4)
         .attr('x', (d: number): number => d * width)
-        .attr('fill', (d: number): string => legendColor(d));
+        .attr('fill', (d: number): string => rectColour(d));
 
-    /* Values as text */
+    // values as text
     legend.append('g')
       .selectAll('text')
       .data((): number[] => d3.range(8))
@@ -85,7 +85,7 @@ class Heatmap extends PureComponent<Chart> {
               : `${d*3}`
         );
 
-    /* Unit below values */
+    // unit below values
     legend.append('text')
         .attr('id', 'unit')
         .attr('class', 'legend')
@@ -96,16 +96,18 @@ class Heatmap extends PureComponent<Chart> {
 
   /** Function for drawing the heatmap with data from props */
   draw = () => {
-    const { data } = this.props;
-    const year = data[0].date.getUTCFullYear();
     const dayGap = 1.5; // width of gap between days
+    const { data } = this.props;
+    const cellSize = this.cellSize;
+    const year = data[0].date.getUTCFullYear();
     const chart = d3.select(this.chartRef.current).append('g');
+    const rectColour = d3.scaleSequential(d3.interpolateBlues).domain([0, 21]);
 
-    /* For squares' on hover -legend */
+    // for squares' on hover -legend
     const valueFormat = d3.format('.3'); // 3 digits
     const dateFormat = d3.utcFormat('%-d.%-m.%Y'); // dd.mm.yyyy
     
-    /* Year in top left corner */
+    // year in top left corner
     chart.append('text')
         .attr('class', 'dynamic')
         .attr('x', -5)
@@ -114,7 +116,7 @@ class Heatmap extends PureComponent<Chart> {
         .attr('text-anchor', 'end')
         .text(year);
 
-    /* Squares and on hover legend */
+    // squares and on hover legend
     chart.append('g')
         .attr('class', 'dynamic')
       .selectAll('rect')
@@ -124,16 +126,17 @@ class Heatmap extends PureComponent<Chart> {
         .attr('height', cellSize - dayGap)
         .attr('x', (d: Data): number =>
             d3.utcMonday.count(d3.utcYear(d.date), d.date)*cellSize + dayGap/2)
-        .attr('y', (d: Data): number => countDay(d.date)*cellSize + dayGap/2)
-        .attr('fill', (d: Data): string => color(d.value))
+        .attr('y', (d: Data): number =>
+            this.countDay(d.date)*cellSize + dayGap/2)
+        .attr('fill', (d: Data): string => rectColour(d.value))
       .append('title')
         .text((d: Data): string =>
             `${dateFormat(d.date)}\n${valueFormat(d.value)}mm`);
     
-    /* Path for the gaps between months */
+    // path for the gaps between months
     const monthGapPath = (d: Date): string => {
-      const day = countDay(d);
-      /* Count weeks from the beginning of the year to d */
+      const day = this.countDay(d);
+      // count weeks from the beginning of the year to d
       const w = d3.utcMonday.count(d3.utcYear(d), d);
       return (
         `${day === 0
@@ -143,7 +146,7 @@ class Heatmap extends PureComponent<Chart> {
       );
     }
 
-    /* Elements for each month */
+    // elements for each month
     const month = chart.append('g')
         .attr('class', 'dynamic')
       .selectAll('g')
@@ -151,12 +154,12 @@ class Heatmap extends PureComponent<Chart> {
           d3.utcMonth(data[0].date), data[data.length - 1].date))
       .join('g');
 
-    /* Gap between months */
+    // gap between months
     month.filter((d: any, i: any) => i).append('path')
         .attr('stroke-width', dayGap) // width
         .attr('d', monthGapPath);
 
-    /* Labels for months */
+    // labels for months
     month.append('text')
         .attr('x', (d: Date): number => d3.utcMonday.count(
             d3.utcYear(d), d3.utcMonday.ceil(d))*cellSize + 1.4*cellSize)
