@@ -21,6 +21,16 @@
     "jsx": "preserve",
     "experimentalDecorators": true,
   },
+  "typedocOptions": {
+    "mode": "modules",
+    "out": "_docs",
+    "excludeExternals": true,
+    "exclude": [
+      "**/index.tsx",
+      "**/utils/**/*",
+    ],
+    "theme": "minimal",
+  },
   "include": [
     "src/**/*"
   ]

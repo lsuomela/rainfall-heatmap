@@ -3,14 +3,14 @@ import './css/App.css';
 import Heatmap from './Heatmap';
 import store from './Store';
 
-/** Class for choosing which years data to render */
+/** Passes data from {@link Store} to {@link Heatmap} */
 class App extends Component {
   state = {
     year: 2018,
     loaded: false,
   }
 
-  /** On mount load data into store and check localStorage */
+  /** Load data into store and check localStorage */
   componentDidMount() {
     store.loadData();
     if (localStorage.hasOwnProperty("year")) {
@@ -21,8 +21,9 @@ class App extends Component {
     this.setState({ loaded: true });
   }
   
-  /** Sets the year for which to render data
-   * @param y Year from which to get data
+  /** 
+   * Sets the year for which to render data
+   * @param y - Year from which to get data
    */
   setYear = (y: number) => {
     if (y != this.state.year) {
